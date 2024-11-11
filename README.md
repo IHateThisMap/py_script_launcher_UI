@@ -13,4 +13,4 @@ or this:
 
 NOTICE that when you are done selecting the arguments values when using the UI and press ENTER, this function will return the selected argument values and your script can take them into use.
 
-You can also use run_command_handler() function, if you want the UI script to also check and handle the arguments that user in terminal has potentially added to the command that runs the script. This can be for example something like this: <img width="549" alt="image" src="https://github.com/user-attachments/assets/a7961cb1-c120-43cd-b14f-2f1dae38f088">
+You can also use run_command_handler() function, if you want the UI script to also check and handle the arguments that user in terminal has potentially added to the command that started the script. This can be for example something like this: <img width="549" alt="image" src="https://github.com/user-attachments/assets/a7961cb1-c120-43cd-b14f-2f1dae38f088">
