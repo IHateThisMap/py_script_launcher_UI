@@ -251,10 +251,17 @@ def return_output_values(current_options, argument_options):
     return return_values
 
 if __name__ == '__main__':
-    run_ui(argument_options = (("option1 ",   (123, 234, 345)                                ), 
-                               ("option2 ",   range(0, 50),                          " optional extra text for option2"), 
-                               ("option3 ",   [10 * i for i in range(0, 5)],         " optional extra text here too!"), 
-                               ("option4 ",   ("ok", "yes", "hello", "awdawdwadaw")          )
-                              )
-          )
+    # Just examples to demonstrate how this can be used through that argument_options variable
+    # You run this script directly for a bit of demonstration
+    o1, o2, o3, o4 = run_ui(argument_options = 
+                            (
+                                ("option1 ",   (123, 234, 345)                                ), 
+                                ("option2 ",   range(0, 50),                          " optional extra text for option2"), 
+                                ("option3 ",   [10 * i for i in range(0, 5)],         " optional extra text here too!"), 
+                                ("option4 ",   ("ok", "yes", "hello", "awdawdwadaw")          )
+                            )
+                           )
+    print(f"run_ui() returned: \"{o1}\" \"{o2}\" \"{o3}\" and \"{o4}\"")
     
+    #chosen_argument_values_list = run_ui(argument_options = ( ("option1 ", (123, 234, 345, 312312)),   ("option2123 ", ("ok", "yes", "hello", "awdawdwadaw")) ))
+    #print(f"run_ui() returned: {chosen_argument_values_list}")
