@@ -148,7 +148,7 @@ def print_the_lines(selected_option, current_options, argument_options, old_line
 
     return lines
 
-def run_command_handler(argument_options, args):
+def run_command_handler(argument_options, args=sys.argv):
     if len(args) == 2 and args[1] == "ui":
         return run_ui(argument_options)
     elif len(args) == 1+len(argument_options):
@@ -172,6 +172,7 @@ def run_command_handler(argument_options, args):
                 _default_options.append(int(argument_options[i][1][0]))
             else:
                 _default_options.append(argument_options[i][1][0])
+        print(color() + "default values in use. If you want to use the ui, give \"ui\" as argument")
         return _default_options
     else:
         print("SOMETHING WRONG WiTH THE ARGUMENTS")
@@ -241,13 +242,14 @@ def run_ui(argument_options = (("Produce ",  _product_list                      
         elif selected_option == -3:
             print("exit")
             exit()
+    
     return return_output_values(current_options, argument_options)
 
 def return_output_values(current_options, argument_options):
     return_values = []
     for i in range(len(argument_options)):
         return_values.append(argument_options[i][1][current_options[i]])
-    print("return: " + str(return_values))
+    print(color() + "return: " + str(return_values))
     return return_values
 
 if __name__ == '__main__':
