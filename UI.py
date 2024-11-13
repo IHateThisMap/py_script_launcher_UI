@@ -69,14 +69,14 @@ def handle_input(selected_option, current_options, argument_options):
     elif ch in ("\n", "\r"):
         return -1, argument_options, current_options
     else:
-        print_notification("unknown input character " + color(style="highlight") + "\"" + repr(ch).strip("'") + "\"")
+        print_notification("unknown input character \"" + repr(ch).strip("'") + "\"")
     
     print_over_lines(lines=[" Use wasd to change settings and press ENTER to run the tool"], start_style="fade", at_start_cursor_moves="\n", at_end_cursor_moves = UP)
 
     return selected_option, argument_options, current_options
 
-def print_notification(message):
-    print_over_lines(lines=[message + color(style="fade") + " (press any key to continue)"], start_color="red", start_style="highlight", at_start_cursor_moves="\n", at_end_cursor_moves = UP)
+def print_notification(message, start_color="red"):
+    print_over_lines(lines=[message + color(style="fade") + " (press any key to continue)"], start_color=start_color, start_style="highlight", at_start_cursor_moves="\n", at_end_cursor_moves = UP)
     get_ch()
     print_over_lines(lines=["", ""], at_start_cursor_moves=UP, at_end_cursor_moves = UP)
 
@@ -148,10 +148,11 @@ def print_the_lines(selected_option, current_options, argument_options, old_line
 
     return lines
 
-def run_command_handler(argument_options, args=sys.argv):
+def run_command_handler(argument_options, default_settings=()):
+    args = sys.argv
     if len(args) == 2 and args[1] == "ui":
-        return run_ui(argument_options)
-    elif len(args) == 1+len(argument_options):
+        return run_ui(argument_options, default_settings)
+    elif len(sys.argv) == 1+len(argument_options): #TODO maybe this should be removed from this script
         _options_parsed_from_args = []
         for i in range(len(argument_options)):
             if (args[i+1] in argument_options[i][1]):
@@ -162,45 +163,54 @@ def run_command_handler(argument_options, args=sys.argv):
                 ### Could try and come up with good way to deal with an option like: "("and ", ["use previously queried and saved prices", "use API"])" 
                 ### I want to keep this script as modular as possible, but maybe we could accept boolean args when ever there is just 2 options string to choose from. 
                 print()
-                print(color("red") + "INVALID ARGUMENT!\n" + args[i+1] + " NOT IN  " + str(argument_options[i][1]) + "\n" + color())
+                print_notification("INVALID ARGUMENT!\n" + args[i+1] + " NOT IN  " + str(argument_options[i][1]) + "\n")
                 sys.exit()
-        return _options_parsed_from_args
+        print("parsed settings from sys.argv")
+        return _options_parsed_from_args            #TODO maybe this should be removed from this script
     elif len(args) == 1:
-        _default_options = []
-        for i in range(len(argument_options)):
-            if (str(argument_options[i][1][0]).isdigit()):
-                _default_options.append(int(argument_options[i][1][0]))
-            else:
-                _default_options.append(argument_options[i][1][0])
-        print(color() + "default values in use. If you want to use the ui, give \"ui\" as argument")
-        return _default_options
+        if len(argument_options) == len(default_settings):
+            return default_settings
+        else:
+            _default_options = []
+            for i in range(len(argument_options)):
+                if (str(argument_options[i][1][0]).isdigit()):
+                    _default_options.append(int(argument_options[i][1][0]))
+                else:
+                    _default_options.append(argument_options[i][1][0])
+            print(color("yellow") + "No default settings provided. Defaults to first setting in all options. (If you want to use the ui, give \"ui\" as argument)" + color())
+            return _default_options
     else:
         print("SOMETHING WRONG WiTH THE ARGUMENTS")
         sys.exit()
 
-_product_list = (
-    "all",
-    "titanium bar",
-    "All potions",
-    "Potion of swiftiness",
-    "Potion of resurrection",
-    "Potion of great sight",
-    "Potion of trickery",
-    "Potion of dark magic",
-    "Potion of pure power"
-)
-#                                text1        the options as lists                                   (optional)text2
-def run_ui(argument_options = (("Produce ",  _product_list                                                                           ), 
-                               ("with ",     range(0, 50),                                          f"% active boost"                ), 
-                               ("and with ", [10 * i for i in range(0, 5)],                         f"% chance to save the materials"), 
-                               ("and ",      ["use previously queried and saved prices", "use API"]                                  )),
+def _handle_default_settings(default_settings, argument_options):
+    if len(default_settings) == len(argument_options):
+        default_setting_indexes = []
+        for i in range(len(argument_options)):
+            if (default_settings[i] in argument_options[i][1]):
+                default_setting_indexes.append(argument_options[i][1].index(default_settings[i]))
+            else:
+                print()
+                print_notification("INVALID DEFAULT SETTING!\n" + default_settings[i] + " NOT IN  " + str(argument_options[i][1]) + "\n")
+                sys.exit()
+        return default_setting_indexes
+    elif len(default_settings) == 0:
+        print_notification("No default settings provided to run_ui()! UI proceeds with all settings defaulting to index 0 ")
+        return [0 for _ in range(len(argument_options))]
+    else:
+        print_notification("Lenght of default_settings is invalid!")
+        exit()
+
+
+def run_ui(argument_options, default_settings = (),
            number_of_lines = 9   ):
     '''
     Takes an argument_options list as input. It contains lists that always have a string of text first, and secondly a list of options, and optionally lastly a second string.\n
     argument_options( option_X( string, (x1, x2, x3, ... ), optional_string  ), \n
     _________________ option_y( string, (y1, y2, y3, ... ), optional_string  ), \n
     _________________ option_z( string, (z1, z2, z3, ... ), optional_string  ), \n
-    _________________ ... )
+    _________________ ... )\n
+    default_settings must be a list that has the default setting of each option of argument_options in it.
     '''
 
     #linewraping might not be possible to turn off like this in all terminals
@@ -211,13 +221,13 @@ def run_ui(argument_options = (("Produce ",  _product_list                      
     selected_option = 0
 
     # keys 'w' and 's' can be used to change currently selected_options values in this integer list.
-    current_options = [0 for _ in range(len(argument_options))]
+    current_settings_indexes = _handle_default_settings(default_settings, argument_options)
 
     _reversing_print = ""
     for i in range(number_of_lines):
         _reversing_print += UP
 
-    lines = print_the_lines(selected_option, current_options, argument_options, ["" for _ in range(number_of_lines)])
+    lines = print_the_lines(selected_option, current_settings_indexes, argument_options, ["" for _ in range(number_of_lines)])
     while True:
         sys.stdout.flush()
         print(_reversing_print)
@@ -229,21 +239,17 @@ def run_ui(argument_options = (("Produce ",  _product_list                      
         print(_whitespaces, end="\r")
         print(_reversing_print)
 
-        lines = print_the_lines(selected_option, current_options, argument_options, lines)
+        lines = print_the_lines(selected_option, current_settings_indexes, argument_options, lines)
 
-        selected_option, argument_options, current_options = handle_input(selected_option, current_options, argument_options)
+        selected_option, argument_options, current_settings_indexes = handle_input(selected_option, current_settings_indexes, argument_options)
         if selected_option == -1:
             print("\n")
             print("run the script")
             break
-        elif selected_option == -2:
-            print("save")
-            #TODO save current selections to some file and also implement loading saves somehow neatly
         elif selected_option == -3:
             print("exit")
             exit()
-    
-    return return_output_values(current_options, argument_options)
+    return return_output_values(current_settings_indexes, argument_options)
 
 def return_output_values(current_options, argument_options):
     return_values = []
@@ -261,7 +267,8 @@ if __name__ == '__main__':
                                 ("option2 ",   range(0, 50),                          " optional extra text for option2"), 
                                 ("option3 ",   [10 * i for i in range(0, 5)],         " optional extra text here too!"), 
                                 ("option4 ",   ("ok", "yes", "hello", "awdawdwadaw")          )
-                            )
+                            ),
+                            default_settings = (234, 49, 10, "yes")
                            )
     print(f"run_ui() returned: \"{o1}\" \"{o2}\" \"{o3}\" and \"{o4}\"")
     
